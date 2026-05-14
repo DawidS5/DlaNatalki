@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wszystkiego Najlepszego, Natalka! 🎂</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose:    #f7a8c4;
+    --deep:    #c2185b;
+    --gold:    #f9c854;
+    --cream:   #fff8f2;
+    --blush:   #fde8ef;
+    --text:    #2d1a24;
+    --muted:   #9e7b8a;
+    --shadow:  rgba(194,24,91,0.18);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  #cursor {
+    width: 18px; height: 18px;
+    background: var(--rose);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform .15s, background .2s;
+    mix-blend-mode: multiply;
+  }
+  #cursor.clicked { transform: translate(-50%,-50%) scale(2.2); background: var(--gold); }
+
+  /* ── CANVAS ── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    gap: 1.2rem;
+  }
+
+  .tag {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(.8rem,1.5vw,1rem);
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp .8s .3s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.5rem, 11vw, 9rem);
+    font-weight: 900;
+    line-height: .95;
+    color: var(--deep);
+    opacity: 0;
+    animation: fadeUp .9s .5s forwards;
+    position: relative;
+  }
+  .hero-title span {
+    display: block;
+    font-style: italic;
+    color: var(--text);
+    font-size: .58em;
+    letter-spacing: .04em;
+  }
+
+  .name-badge {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(2.8rem, 8vw, 6.5rem);
+    color: var(--deep);
+    text-shadow: 0 4px 32px var(--shadow);
+    opacity: 0;
+    animation: popIn .7s .9s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.1rem, 2.5vw, 1.55rem);
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+    opacity: 0;
+    animation: fadeUp .8s 1.1s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    opacity: 0;
+    animation: fadeUp .8s 1.8s forwards;
+    color: var(--muted);
+    font-size: .78rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  .scroll-hint::after {
+    content: '';
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(var(--rose), transparent);
+    animation: lineGrow 1.5s 2s infinite;
+  }
+
+  /* ── CARD SECTION ── */
+  #card-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+  }
+
+  .card-wrap {
+    max-width: 760px;
+    width: 100%;
+    position: relative;
+  }
+
+  .deco-line {
+    position: absolute;
+    top: -3rem; left: 50%;
+    transform: translateX(-50%);
+    width: 1px; height: 3rem;
+    background: linear-gradient(transparent, var(--rose));
+  }
+
+  .card {
+    background: white;
+    border-radius: 2px;
+    padding: clamp(2.5rem, 7vw, 5rem) clamp(2rem, 6vw, 4.5rem);
+    box-shadow:
+      0 2px 4px var(--shadow),
+      0 20px 60px rgba(194,24,91,.08),
+      0 60px 120px rgba(194,24,91,.04);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity .9s, transform .9s;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(247,168,196,.3);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .card-corner {
+    position: absolute;
+    width: 60px; height: 60px;
+    border-color: var(--rose);
+    border-style: solid;
+    border-width: 0;
+  }
+  .card-corner.tl { top: 16px; left: 16px; border-top-width: 1px; border-left-width: 1px; }
+  .card-corner.tr { top: 16px; right: 16px; border-top-width: 1px; border-right-width: 1px; }
+  .card-corner.bl { bottom: 16px; left: 16px; border-bottom-width: 1px; border-left-width: 1px; }
+  .card-corner.br { bottom: 16px; right: 16px; border-bottom-width: 1px; border-right-width: 1px; }
+
+  .card-eyebrow {
+    font-size: .8rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 1.8rem;
+  }
+
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.8rem;
+    color: var(--text);
+  }
+  .card h2 em { color: var(--deep); font-style: italic; }
+
+  .card p {
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    line-height: 1.9;
+    color: #5c3d4a;
+    margin-bottom: 1.2rem;
+  }
+
+  .card .signature {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2rem;
+    color: var(--deep);
+    margin-top: 2rem;
+    text-align: right;
+  }
+
+  /* ── WISH MACHINE ── */
+  #wishes-section {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+    gap: 3rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    text-align: center;
+    font-style: italic;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .8s, transform .8s;
+  }
+  .section-title.visible { opacity: 1; transform: translateY(0); }
+  .section-title span { color: var(--deep); }
+
+  .wish-machine {
+    background: white;
+    border: 1px solid rgba(247,168,196,.4);
+    border-radius: 2px;
+    padding: 2.5rem 3rem;
+    max-width: 580px;
+    width: 100%;
+    box-shadow: 0 8px 48px rgba(194,24,91,.07);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .8s .15s, transform .8s .15s;
+  }
+  .wish-machine.visible { opacity: 1; transform: translateY(0); }
+
+  .wish-label {
+    font-size: .8rem;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #wish-input {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    border: none;
+    border-bottom: 1px solid var(--rose);
+    padding: .5rem 0;
+    background: transparent;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+    transition: border-color .3s;
+  }
+  #wish-input::placeholder { color: #c9a0b2; font-style: italic; }
+  #wish-input:focus { border-color: var(--deep); }
+
+  .wish-btn {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    background: var(--deep);
+    color: white;
+    border: none;
+    padding: .85rem 2rem;
+    border-radius: 1px;
+    cursor: pointer;
+    transition: background .25s, transform .2s;
+    align-self: flex-end;
+  }
+  .wish-btn:hover { background: #a0134e; transform: translateY(-1px); }
+  .wish-btn:active { transform: translateY(1px); }
+
+  .wish-display {
+    min-height: 3rem;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.6rem;
+    color: var(--deep);
+    text-align: center;
+    opacity: 0;
+    transition: opacity .5s;
+  }
+  .wish-display.show { opacity: 1; }
+
+  /* ── GALLERY MOOD ── */
+  #mood-section {
+    padding: 6rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .flowers-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .9s, transform .9s;
+  }
+  .flowers-row.visible { opacity: 1; transform: translateY(0); }
+
+  .flower-card {
+    width: clamp(120px, 18vw, 180px);
+    aspect-ratio: 1;
+    background: var(--blush);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s;
+    cursor: default;
+    user-select: none;
+  }
+  .flower-card:hover {
+    transform: scale(1.12) rotate(-3deg);
+    box-shadow: 0 16px 48px var(--shadow);
+  }
+  .flower-card span {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: .75rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: .3rem;
+  }
+
+  /* ── COUNTDOWN DONE ── */
+  #countdown-section {
+    padding: 5rem 2rem 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .numbers-row {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .9s .1s, transform .9s .1s;
+  }
+  .numbers-row.visible { opacity: 1; transform: translateY(0); }
+
+  .num-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .4rem;
+  }
+  .num-val {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    font-weight: 900;
+    color: var(--deep);
+    line-height: 1;
+    min-width: 3rem;
+    text-align: center;
+  }
+  .num-label {
+    font-size: .7rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .num-sep {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--rose);
+    align-self: flex-start;
+    padding-top: .6rem;
+  }
+
+  /* ── FINALE ── */
+  #finale {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    text-align: center;
+    gap: 1.2rem;
+  }
+
+  .finale-big {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 7vw, 5.5rem);
+    font-weight: 900;
+    font-style: italic;
+    color: var(--deep);
+    line-height: 1.1;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .9s, transform .9s;
+  }
+  .finale-big.visible { opacity: 1; transform: translateY(0); }
+
+  .finale-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    color: var(--muted);
+    font-style: italic;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .9s .2s, transform .9s .2s;
+  }
+  .finale-sub.visible { opacity: 1; transform: translateY(0); }
+
+  .hearts-row {
+    display: flex;
+    gap: .5rem;
+    font-size: 1.8rem;
+    opacity: 0;
+    transition: opacity .9s .4s;
+  }
+  .hearts-row.visible { opacity: 1; }
+  .hearts-row span { animation: heartbeat 1.4s infinite; }
+  .hearts-row span:nth-child(2) { animation-delay: .2s; }
+  .hearts-row span:nth-child(3) { animation-delay: .4s; }
+
+  /* ── KEYFRAMES ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(.6); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes lineGrow {
+    0%,100% { opacity: .2; transform: scaleY(.5); transform-origin: top; }
+    50%      { opacity: 1;  transform: scaleY(1);  }
+  }
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    30%     { transform: scale(1.3); }
+    60%     { transform: scale(1); }
+    80%     { transform: scale(1.15); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-12px); }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="cursor"></div>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="tag">Dzisiaj jest twój dzień!</p>
+  <h1 class="hero-title">
+    Wszystkiego<br>
+    <span>Najlepszego</span>
+  </h1>
+  <p class="name-badge">Natalka 🌸</p>
+  <p class="hero-sub">
+    Uśmiechnij sie!
+  </p>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- CARD -->
+<section id="card-section">
+  <div class="card-wrap">
+    <div class="deco-line"></div>
+    <div class="card reveal">
+      <div class="card-corner tl"></div>
+      <div class="card-corner tr"></div>
+      <div class="card-corner bl"></div>
+      <div class="card-corner br"></div>
+      <p class="card-eyebrow">♥ Kartka urodzinowa ♥</p>
+      <h2>Dear <em>Natalka</em></h2>
+      <p>
+        Dziś są twoje urodziny, wiec chce Ci życzyć wszystkiego co najlepsze. Niech ten dzień będzie pełen radości i uśmiechu na twojej twarzy.
+      </p>
+      <p>
+        Mam nadzieję, że każdy następny rok bedzie tylko piękniejszy. Jesteś wyjątkowa pamiętaj o tym.
+      </p>
+      <p>
+        kwiatusek dla Ciebie 🌷
+      </p>
+      <div class="signature">From Dear Dawid 🦋</div>
+    </div>
+  </div>
+</section>
+
+<!-- WISH MACHINE -->
+<section id="wishes-section">
+  <h2 class="section-title reveal">Maszyna <span>życzeń</span> 🪄</h2>
+  <div class="wish-machine reveal">
+    <p class="wish-label">Napisz życzenie</p>
+    <input id="wish-input" type="text" placeholder="Wpisz swoje życzenie tutaj…" maxlength="120">
+    <button class="wish-btn" onclick="sendWish()">Wyślij życzenie ✨</button>
+    <div class="wish-display" id="wish-display"></div>
+  </div>
+</section>
+
+<!-- MOOD FLOWERS -->
+<section id="mood-section">
+  <h2 class="section-title reveal">Bukiet kwiatuszków <span>dla Ciebie</span></h2>
+  <div class="flowers-row reveal">
+    <div class="flower-card">🌸<span>Wiśnia</span></div>
+    <div class="flower-card">🌺<span>Hibiskus</span></div>
+    <div class="flower-card">🌹<span>Róża</span></div>
+    <div class="flower-card">🌷<span>Tulipan</span></div>
+    <div class="flower-card">💐<span>Bukiet</span></div>
+    <div class="flower-card">🌻<span>Słonecznik</span></div>
+  </div>
+</section>
+
+<!-- CZAS OD URODZIN -->
+
+
+<!-- FINALE -->
+<section id="finale">
+  <h2 class="finale-big reveal">Sto lat!</h2>
+  <p class="finale-sub reveal">"Yesterday is history, tomorrow is a mystery, but today is a gift that's why it's called the present." Z tej okazji duży prezent dla Ciebie!</p>
+  <div><h2 style="font-size: 15em;">🎁</h2></div>
+  <div class="hearts-row reveal"><span>🌸</span><span>💖</span><span>🌸</span></div>
+</section>
+
+<script>
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.addEventListener('mousedown', () => cur.classList.add('clicked'));
+document.addEventListener('mouseup',   () => cur.classList.remove('clicked'));
+
+/* ── PARTICLE CANVAS ── */
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const COLORS = ['#f7a8c4','#f9c854','#fde8ef','#c2185b','#fbb6ce'];
+
+  const particles = [];
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init=false) {
+      this.x  = Math.random() * W;
+      this.y  = init ? Math.random() * H : H + 20;
+      this.r  = Math.random() * 5 + 2;
+      this.vx = (Math.random() - .5) * .5;
+      this.vy = -(Math.random() * .8 + .3);
+      this.alpha = Math.random() * .55 + .15;
+      this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      this.angle = Math.random() * Math.PI * 2;
+      this.rot   = (Math.random() - .5) * .03;
+      this.shape = Math.random() > .5 ? 'circle' : 'heart';
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.fillStyle = this.color;
+      if (this.shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        const s = this.r * .8;
+        ctx.beginPath();
+        ctx.moveTo(0, s);
+        ctx.bezierCurveTo(s*1.2, -s*.6, s*2.4, s*.4, 0, s*2);
+        ctx.bezierCurveTo(-s*2.4, s*.4, -s*1.2, -s*.6, 0, s);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    update() {
+      this.x     += this.vx;
+      this.y     += this.vy;
+      this.angle += this.rot;
+      if (this.y < -20) this.reset();
+    }
+  }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for (let i = 0; i < 70; i++) particles.push(new Particle());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ── CLICK BURST ── */
+document.addEventListener('click', e => {
+  burst(e.clientX, e.clientY);
+});
+function burst(x, y) {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  const emojis = ['🌸','💖','✨','🎂','🎉'];
+  for (let i = 0; i < 8; i++) {
+    const span = document.createElement('div');
+    span.style.cssText = `
+      position:fixed;left:${x}px;top:${y}px;font-size:${Math.random()*18+12}px;
+      pointer-events:none;z-index:8888;transition:all .9s cubic-bezier(.2,1,.3,1);
+      transform:translate(-50%,-50%);
+    `;
+    span.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    document.body.appendChild(span);
+    const angle  = (i / 8) * Math.PI * 2;
+    const dist   = Math.random() * 80 + 40;
+    requestAnimationFrame(() => {
+      span.style.left      = (x + Math.cos(angle)*dist) + 'px';
+      span.style.top       = (y + Math.sin(angle)*dist) + 'px';
+      span.style.opacity   = '0';
+    });
+    setTimeout(() => span.remove(), 1000);
+  }
+}
+
+/* ── SCROLL REVEAL ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: .15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ── WISH MACHINE ── */
+const wishMessages = [
+  '💌 Wysłane!',
+  '🎈 Gołąb odebrał życzenie!',
+  '✨ Magia start!, życzenie się spełni!',
+  '🌸 Najwspanialsze życzenie!',
+  '💖 Cudowne życzenie!',
+  '🎂 Życzenie dodane do wielkiej listy!',
+];
+function sendWish() {
+  const input = document.getElementById('wish-input');
+  const disp  = document.getElementById('wish-display');
+  const val   = input.value.trim();
+  if (!val) { input.focus(); return; }
+  const msg = wishMessages[Math.floor(Math.random() * wishMessages.length)];
+  disp.textContent = msg;
+  disp.classList.add('show');
+  burst(window.innerWidth/2, window.innerHeight*.5);
+  input.value = '';
+  setTimeout(() => disp.classList.remove('show'), 4500);
+}
+document.getElementById('wish-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendWish();
+});
+
+/* ── BIRTHDAY TIMER ── */
+function updateTimer() {
+  const now   = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const diff  = Math.floor((now - start) / 1000);
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  document.getElementById('t-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('t-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('t-s').textContent = String(s).padStart(2,'0');
+}
+updateTimer();
+setInterval(updateTimer, 1000);
+</script>
+</body>
+</html>
